@@ -10,6 +10,11 @@ app.use(express.json());
 app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
 
 app.use('/api/diagnosis', diagnosisRoutes);
+app.get("/", (req, res) => {
+  res.json({ message: "MedRAX Node backend is running" });
+});
+
 
 module.exports = app;
+
 
