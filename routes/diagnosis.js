@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const GEMINI_API_KEY = 'AIzaSyDVNtWtbJAT0TM19ATKj5g2U4wfLFuXm7I';
+const GEMINI_API_KEY =  process.env.GEMINI_API_KEY;
 
 router.post('/report', async (req, res) => {
   try {
@@ -49,3 +49,4 @@ router.post('/followup', async (req, res) => {
 });
 
 module.exports = router;
+
