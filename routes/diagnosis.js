@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const GEMINI_API_KEY =  process.env.GEMINI_API_KEY;
@@ -48,5 +48,58 @@ router.post('/followup', async (req, res) => {
   }
 });
 
+module.exports = router;*/
+
+const express = require('express');
+const router = express.Router();
+const axios = require('axios');
+const History = require('../models/History');
+
+router.post('/report', async (req, res) => {
+  try {
+    const image = req.files.file;
+    const imageBase64 = image.data.toString('base64');
+
+    const mlResponse = await axios.post(
+      `${process.env.ML_BACKEND_URL}/analyze-image`,
+      image.data,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+
+    const report = mlResponse.data.analysis;
+
+    const history = await History.create({
+      imageBase64,
+      report
+    });
+
+    res.json({ report, historyId: history._id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/ask', async (req, res) => {
+  const { historyId, question } = req.body;
+
+  const history = await History.findById(historyId);
+
+  const answerRes = await axios.post(
+    `${process.env.ML_BACKEND_URL}/ask`,
+    { report: history.report, question }
+  );
+
+  history.qa.push({
+    question,
+    answer: answerRes.data.text
+  });
+
+  await history.save();
+
+  res.json({ text: answerRes.data.text });
+});
+
 module.exports = router;
+
+
 
